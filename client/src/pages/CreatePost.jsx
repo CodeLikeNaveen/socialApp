@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { dummyUserData } from '../assets/assets'
-import { Image } from 'lucide-react'
+import { Image, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const CreatePost = () => {

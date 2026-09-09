@@ -10,16 +10,23 @@ import CreatePost from './pages/CreatePost';
 import Discover from './pages/Discover';
 import Profile from './pages/Profile';
 
-import { useUser } from '@clerk/react';
+import { useAuth, useUser } from '@clerk/react';
 import { Toaster } from 'react-hot-toast';
+import { useEffect } from 'react';
 
 function App() {
-  const {user} = useUser()
+  const { user } = useUser()
+  const { getToken } = useAuth()
+  useEffect(() => {
+    if (user) {
+      getToken().then((token) => console.log(token))
+    }
+  }, [user])
   return (
     <>
       <Toaster />
       <Routes>
-        <Route path='/' element={ !user ? <Login/> : <Layout/>}>
+        <Route path='/' element={!user ? <Login /> : <Layout />}>
           <Route index element={<Feed />} />
           <Route path='/messages' element={<Message />} />
           <Route path='/messages/:userId' element={<ChatBox />} />
