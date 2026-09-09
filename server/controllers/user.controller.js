@@ -1,8 +1,9 @@
 import { log } from "console";
-import createFileUrl from "../config/imageKit.js";
+import { createFileUrl } from "../config/imageKit.js";
 import User from "../models/User.model.js"
 import fs from 'fs';
 import Connection from "../models/Connection.model.js";
+import { inngest } from "../inngest/index.js";
 
 // get user data
 export const getUserData = async (req, res) => {
@@ -53,7 +54,6 @@ export const updateUserData = async (req, res) => {
         const userData = await User.findById(userId)
 
         !username && (username = userData.username)
-        console.log(req.body);
 
         if (userData.username !== username) {
             const checkexist = await User.findOne({ username })
@@ -162,10 +162,17 @@ export const sendConnectionRequest = async (req, res) => {
         })
 
         if (!connection) {
-            await Connection.create({
+            const newConnection = await Connection.create({
                 from_user_id: userId,
                 to_user_id: id
             })
+
+            // schedule story deletion after 24 hours
+            await inngest.send({
+                name: 'app/connection-request',
+                data: { connectionId: newConnection._id }
+            })
+
             res.json({ success: true, message: 'Connection Request Sent' })
         } else if (connection && connection.status === 'accepted') {
             return res.json({ success: false, message: 'Request Already Sent' })
@@ -189,9 +196,9 @@ export const getUserConnections = async (req, res) => {
         const followers = user.followers
         const following = user.following
 
-        const pendingConnections = (await Connection.find({ to_user_id: userId,  status: 'pending'}).populate('from_user_id')).map(connection => connection.from_user_id)
+        const pendingConnections = (await Connection.find({ to_user_id: userId, status: 'pending' }).populate('from_user_id')).map(connection => connection.from_user_id)
 
-        res.json({ success: true, connections, followers, following,pendingConnections})
+        res.json({ success: true, connections, followers, following, pendingConnections })
 
     } catch (error) {
         console.log(error.message);
@@ -205,16 +212,16 @@ export const acceptConnectionRequest = async (req, res) => {
         const { userId } = await req.auth()
         const { id } = req.body
 
-        const connection = await Connection.findOne({from_user_id:id, to_user_id:userId})
+        const connection = await Connection.findOne({ from_user_id: id, to_user_id: userId })
 
-        if(!connection){
-            return res.json({ success: false, message: "connection not found"})
+        if (!connection) {
+            return res.json({ success: false, message: "connection not found" })
         }
 
         const user = await Connection.findById(userId);
         user.connection.push(id);
         await user.save();
-        
+
         const user2 = await Connection.findById(id);
         user2.connection.push(userId);
         await user2.save();
@@ -222,7 +229,28 @@ export const acceptConnectionRequest = async (req, res) => {
         connection.status = "accepted";
         await connection.save()
 
-        res.json({ success: true, message:'Connection accepeted successfully'})
+        res.json({ success: true, message: 'Connection accepeted successfully' })
+
+    } catch (error) {
+        console.log(error.message);
+        return res.json({ success: false, message: error.message })
+    }
+}
+
+// get other user profile
+export const getUserProfiles = async (req, res) => {
+    try {
+        const { profileId } = req.body
+
+        const profile = await User.findById(profileId)
+
+        if (!profile) {
+            return res.json({ success: false, message: "Profile not found" })
+        }
+
+        const posts = await Posts.find({ user: profileId }).populate('user');
+
+        res.json({ success: true, profile, posts })
 
     } catch (error) {
         console.log(error.message);
