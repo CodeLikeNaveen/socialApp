@@ -32,5 +32,4 @@ app.use('/api/story', storyRouter)
 app.use('/api/message', messageRouter)
 
 app.get('/',(req,res)=>res.send('Server is Running'))
-app.get('/favicon.ico',(req,res)=>res.sendFile("./public/favicon.svg"))
 
