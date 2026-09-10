@@ -1,13 +1,14 @@
 import { Menu, X } from 'lucide-react'
 import React, { useState } from 'react'
 import { Outlet } from 'react-router-dom'
-import { dummyUserData } from '../assets/assets'
 import Loading from '../components/Loading'
 import Sidebar from '../components/Sidebar'
+import { useSelector } from 'react-redux'
 
 const Layout = () => {
   const [sideBarOpen, setSideBarOpen] = useState(false)
-  const user = dummyUserData
+  const user = useSelector((state)=>state.user.value)
+  
   return user ? (
     <div className='w-full flex h-screen'>
 

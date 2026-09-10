@@ -1,19 +1,61 @@
-import React from 'react'
-import { dummyUserData } from '../assets/assets'
+import React, { useState } from 'react'
 import { MapPin, MessageCircle, Plus, UserPlus } from 'lucide-react'
+import { useDispatch, useSelector } from 'react-redux'
+import { useAuth } from '@clerk/react'
+import { useNavigate } from 'react-router-dom'
+import api from '../api/axios'
+import { fetchUser } from '../features/user/userSlice'
+import toast from 'react-hot-toast'
 
 const UserCard = ({ user }) => {
 
-    const currentUser = dummyUserData
+    const currentUser = useSelector((state) => state.user.value)
+    const { getToken } = useAuth()
+    const dispatch = useDispatch()
+    const navigate = useNavigate()
+    const [loading, setLoading] = useState(false);
 
     const handleFollow = async () => {
-
+        if (loading) return;
+        try {
+            setLoading(true)
+            const { data } = await api.post('/api/user/follow', { id: user._id }, {
+                headers: { Authorization: `Bearer ${await getToken()}` }
+            })
+            if (data.success) {
+                toast.success(data.message)
+                dispatch(fetchUser(await getToken()))
+            } else {
+                toast.error(data.message)
+                console.log(data);
+            }
+        } catch (error) {
+            toast.error(error.message)
+        } finally {
+            setLoading(false);
+        }
     }
     const handleConnectionRequest = async () => {
-
+        if (currentUser.connections.includes(user._id)) {
+            return navigate('/messages' + user._id)
+        }
+        if (loading) return;
+        try {
+            setLoading(true)
+            const { data } = await api.post('/api/user/connect', { id: user._id }, {
+                headers: { Authorization: `Bearer ${await getToken()}` }
+            })
+            if (data.success) {
+                toast.success(data.message)
+            } else {
+                toast.error(data.message)
+            }
+        } catch (error) {
+            toast.error(error.message)
+        } finally {
+            setLoading(false);
+        }
     }
-
-
 
     return (
         <div key={user._id} className='p-4 pt-6 flex flex-col justify-between w-72 shadow border border-gray-200 rounded-md'>
@@ -38,18 +80,19 @@ const UserCard = ({ user }) => {
                 {/* Follow Button */}
                 <button
                     onClick={handleFollow}
-                    disabled={currentUser?.following.includes(user._id)}
+                    disabled={loading && currentUser?.following.includes(user._id)}
                     className='w-full py-2 rounded-md flex justify-center items-center gap-2 bg-linear-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 active:scale-95 transition text-white cursor-pointer'>
                     <UserPlus className='w-4 h-4' /> {currentUser?.following.includes(user._id) ? 'Following' : 'Follow'}
                 </button>
 
                 {/* Connection Request Button / Message Button */}
-                <button onClick={handleConnectionRequest} className='flex items-center justify-center w-16 border text-slate-500 group rounded-md cursor-pointer active:scale-95 transition'>
+                <button onClick={handleConnectionRequest} disabled={loading}
+                className='flex items-center justify-center w-16 border text-slate-500 group rounded-md cursor-pointer active:scale-95 transition'>
                     {
                         currentUser?.connections.includes(user._id) ?
                             <MessageCircle className='w-5 h-5 group-hover:scale-105 transition' />
                             :
-                            <Plus className='w-5 h-5 group-hover:scale-105 transition' />
+                            <Plus  className='w-5 h-5 group-hover:scale-105 transition' />
                     }
                 </button>
 
