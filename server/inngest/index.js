@@ -14,6 +14,7 @@ const syncUserCreation = inngest.createFunction(
     },
     async ({ event }) => {
 
+        console.log("Outside try");
         try {
             console.log("Inngest event data:", event.data);
 

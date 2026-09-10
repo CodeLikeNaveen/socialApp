@@ -1,7 +1,7 @@
 import ImageKit from '@imagekit/nodejs';
 import fs from 'fs';
 const imagekit = new ImageKit({
-    privateKey: process.env['IMAGEKIT_PRIVATE_KEY'], // This is the default and can be omitted
+    privateKey: process.env.IMAGEKIT_PRIVATE_KEY, // This is the default and can be omitted
 });
 
 export const createFileUrl = async (file, width) => {
