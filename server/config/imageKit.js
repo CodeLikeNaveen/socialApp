@@ -59,11 +59,9 @@ export const createStoryMediaUrl = async (file) => {
         file: fs.createReadStream(file.path),
         fileName: file.originalname,
         folder: "story"
-    })
-    console.log(response);    
+    })   
     return response.url;
 }
-
 
 export const createMessageFileUrl = async (file, width=1280) => {
 

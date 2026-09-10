@@ -32,3 +32,4 @@ app.use('/api/story', storyRouter)
 app.use('/api/message', messageRouter)
 
 app.get('/',(req,res)=>res.send('Server is Running'))
+

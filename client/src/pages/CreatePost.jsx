@@ -1,18 +1,53 @@
 import React, { useState } from 'react'
-import { dummyUserData } from '../assets/assets'
 import { Image, X } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { useSelector } from 'react-redux'
+import { useAuth } from '@clerk/react'
+import api from '../api/axios'
+import { useNavigate } from 'react-router-dom'
 
 const CreatePost = () => {
 
   const [content, setContent] = useState('')
   const [images, setImages] = useState([])
-  const [loading, setLoading] = useState([])
+  const [loading, setLoading] = useState(false)
 
-  const user = dummyUserData
+  const user = useSelector((state) => state.user.value)
+
+  const { getToken } = useAuth()
+  const navigate = useNavigate()
 
   const handleSubmit = async () => {
+    if (!images.length && !content) {
+      return toast.error("Please add some content")
+    }
+    setLoading(true)
 
+    const postType = images.length && content ? "text_with_image" : images.length ? 'image' : 'text';
+
+    try {
+      const formData = new FormData();
+      formData.append('content', content)
+      formData.append('post_type', postType)
+      images.map((image) => {
+        formData.append('images', image)
+      })
+
+      const { data } = await api.post('/api/post/add', formData, {
+        headers: { Authorization: `Bearer ${await getToken()}` }
+      })
+
+      if (data.success) {
+        navigate('/')
+      } else {
+        console.log(data.message);
+        throw new Error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+      throw new Error(error.message)
+    }
+    setLoading(false)
   }
 
   return (
@@ -37,8 +72,13 @@ const CreatePost = () => {
 
           {/* Text Area */}
           <textarea
-            className='w-full resize-none max-h-20 mt-4 text-sm outline-none placeholder-gray-400'
+            className='w-full resize-none overflow-y-auto min-h-10 max-h-50 mt-4 text-sm focus:outline-none placeholder-gray-400'
             placeholder="What's happening?"
+            rows={1}
+            onInput={(e) => {
+              e.target.style.height = "auto";
+              e.target.style.height = `${Math.min(e.target.scrollHeight, 200)}px`;
+            }}
             onChange={(e) => setContent(e.target.value)} value={content}
           />
 
@@ -67,16 +107,16 @@ const CreatePost = () => {
               (e) => setImages([...images, ...e.target.files])
             } />
 
-            <button 
-            disabled={loading}
-            onClick={()=>toast.promise(
-              handleSubmit(),
-              {
-                loading: 'uploading...',
-                success: <p>Post Added</p>,
-                error: <p>Post Not Added</p>,
-              })}
-            className='text-sm bg-linear-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 active:scale-95 transition text-white font-medium px-8 py-2 rounded-md cursor-pointer'>
+            <button
+              disabled={loading}
+              onClick={() => toast.promise(
+                handleSubmit(),
+                {
+                  loading: 'uploading...',
+                  success: <p>Post Added</p>,
+                  error: <p>Post Not Added</p>,
+                })}
+              className='text-sm bg-linear-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 active:scale-95 transition text-white font-medium px-8 py-2 rounded-md cursor-pointer'>
               Publish Post
             </button>
           </div>

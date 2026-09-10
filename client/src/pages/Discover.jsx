@@ -1,25 +1,49 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { dummyConnectionsData } from '../assets/assets'
 import { Search } from 'lucide-react'
 import Loading from '../components/Loading'
 import UserCard from '../components/UserCard'
+import api from '../api/axios'
+import { useAuth } from '@clerk/react'
+import { useDispatch } from 'react-redux'
+import { fetchUser } from '../features/user/userSlice'
+import toast from 'react-hot-toast'
 
 const Discover = () => {
 
   const [input, setInput] = useState('')
-  const [users, setUsers] = useState(dummyConnectionsData)
+  const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(false)
 
-  const handleSearch = async (e) => {
-    if (e.key == 'enter') {
-      setUsers([]);
-      setLoading(true);
-      setTimeout(() => {
-        setUsers(dummyConnectionsData);
+  const { getToken } = useAuth()
+  const dispatch = useDispatch()
+
+  const handleSearch = async (e) => {    
+    if (e.key === 'Enter') {
+      try {
+        setUsers([]);
+        setLoading(true);
+        const { data } = await api.post('/api/user/discover', { input }, {
+          headers: { Authorization: `Bearer ${await getToken()}` }
+        })
+        if (data.success) {
+          setUsers(data.users)
+        } else {
+          toast.error(data.message)
+        }
         setLoading(false);
-      }, timeout);
+        setInput('')
+      } catch (error) {
+        toast.error(error.message)
+      }
+      setLoading(false);
     }
   }
+  useEffect(()=>{
+    getToken().then((token)=>{
+      dispatch(fetchUser(token))
+    })
+  },[])
 
   return (
     <div className='min-h-screen bg-linear-to-b from-slate-50 to-white'>
@@ -47,7 +71,7 @@ const Discover = () => {
         </div>
 
         {
-          loading && ( <Loading height='60vh' />)
+          loading && (<Loading height='60vh' />)
         }
 
       </div>

@@ -13,24 +13,33 @@ const syncUserCreation = inngest.createFunction(
         triggers: [{ event: 'clerk/user.created' }],
     },
     async ({ event }) => {
-        const { id, first_name, last_name, email_addresses, image_url } = event.data
-        let username = email_addresses[0].email_address.split('@')[0]
 
-        // Check availability of username
-        const user = await User.findOne({ username })
+        try {
+            console.log("Inngest event data:", event.data);
 
-        if (user) {
-            username = Math.floor(Math.random() * 10000)
+            const { id, first_name, last_name, email_addresses, image_url } = event.data
+            let username = email_addresses[0].email_address.split('@')[0];
+
+
+
+            // Check availability of username
+            const user = await User.findOne({ username })
+
+            if (user) {
+                username = Math.floor(Math.random() * 10000)
+            }
+
+            const userData = {
+                _id: id,
+                email: email_addresses?.[0]?.email_address || "",
+                full_name: first_name + " " + last_name,
+                profile_picture: image_url,
+                username
+            }
+            await User.create(userData)
+        } catch (error) {
+            console.log("error i will know: \n\n",error);
         }
-
-        const userData = {
-            _id: id,
-            email: email_addresses[0].email_address,
-            full_name: first_name + " " + last_name,
-            profile_picture: image_url,
-            username
-        }
-        await User.create(userData)
 
     }
 )
@@ -169,7 +178,7 @@ const sendNotificationUnseenMessages = inngest.createFunction(
                 body
             })
         }
-        return {message: "Notification sent"}
+        return { message: "Notification sent" }
     }
 )
 

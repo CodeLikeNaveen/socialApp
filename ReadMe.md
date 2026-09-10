@@ -8,6 +8,9 @@
     - npm install @clerk/react
     - npm install moment
     - npm install react-hot-toast
+    - npm install react-redux 
+    - npm install @reduxjs/toolkit
+    - npm install axios
         
 ## ==>Other Services:
 **1. Google Fonts** : [outfit](https://fonts.google.com/specimen/Outfit?preview.script=Latn)
