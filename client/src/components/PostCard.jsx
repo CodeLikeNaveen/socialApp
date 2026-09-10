@@ -79,13 +79,13 @@ const PostCard = ({ post }) => {
                         onClick={handleLike} />
                     <span>{likes.length} </span>
                 </div>
-                <div className='flex items-center gap-1'>
+                <div onClick={()=>toast.success("Avalible in Future")} className='flex items-center gap-1'>
                     <MessageCircle className="w-4 h-4" />
-                    <span>{12}</span>
+                    <span>{"0"}</span>
                 </div>
                 <div className='flex items-center gap-1'>
                     <Share2 className="w-4 h-4" />
-                    <span>{12}</span>
+                    <span>{0}</span>
                 </div>
 
             </div>

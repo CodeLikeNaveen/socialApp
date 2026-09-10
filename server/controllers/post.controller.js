@@ -1,4 +1,5 @@
 import { createPostImageUrl } from "../config/imageKit.js";
+import Comment from "../models/Comments.model.js";
 import Post from "../models/Post.model.js";
 import User from "../models/User.model.js";
 
@@ -62,11 +63,31 @@ export const likePost = async (req, res) => {
             post.likes_count = post.likes_count.filter(user => user !== userId)
             await post.save()
             return res.json({ success: true, message: 'Post unliked' });
-        } 
-        
+        }
+
         post.likes_count.push(userId)
         await post.save()
         res.json({ success: true, message: 'Post liked' });
+
+    } catch (error) {
+        console.log(error.message);
+        return res.json({ success: false, message: error.message })
+    }
+}
+
+// Comment Post
+export const commentPost = async (req, res) => {
+    try {
+        const { userId } = req.auth()
+        const { postId, content } = req.body;
+
+        const comment = await Comment.create({
+            post: postId,
+            user: userId,
+            content: content,
+        });
+
+        res.json({ success: true, message: 'Comment Added' });
 
     } catch (error) {
         console.log(error.message);

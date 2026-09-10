@@ -13,20 +13,15 @@ const syncUserCreation = inngest.createFunction(
         triggers: [{ event: 'clerk/user.created' }],
     },
     async ({ event }) => {
-
         try {
-            console.log("Inngest event data:", event.data);
-
             const { id, first_name, last_name, email_addresses, image_url } = event.data
             let username = email_addresses[0].email_address.split('@')[0];
-
-
 
             // Check availability of username
             const user = await User.findOne({ username })
 
             if (user) {
-                username = Math.floor(Math.random() * 10000)
+                username = first_name + Math.floor(Math.random() * 10000)
             }
 
             const userData = {
