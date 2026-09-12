@@ -2,6 +2,7 @@ import { Inngest } from "inngest";
 import User from "../models/User.model.js";
 import sendEmail from "../config/nodeMailer.js";
 import Message from "../models/Message.model.js";
+import Connection from "../models/Connection.model.js";
 
 // Create a client to send and receive events
 export const inngest = new Inngest({ id: "social-app" });
@@ -33,7 +34,7 @@ const syncUserCreation = inngest.createFunction(
             }
             await User.create(userData)
         } catch (error) {
-            console.log("error i will know: \n\n",error);
+            console.log("error i will know: \n\n", error);
         }
 
     }
@@ -53,7 +54,8 @@ const syncUserUpdation = inngest.createFunction(
             full_name: first_name + ' ' + last_name,
             profile_picture: image_url
         }
-        await User.findByIdAndUpdate(id, updatedUserData)
+        await User.findByIdAndUpdate(id, { $set: updatedUserData },
+            { new: true })
     }
 )
 
@@ -100,11 +102,12 @@ const sendNewConnectionRequestReminder = inngest.createFunction(
         await step.run('send-connection-request-reminder', async () => {
             const connection = await Connection.findById(connectionId).populate('from_user_id to_user_id');
 
+
             if (connection.status === "accepted") {
                 return { message: "Already accepted" }
             }
 
-            const subject = `Connection Request Remainder`;
+            const subject = `Connection Request Reminder`;
             const body = `
             <div style="font-family: Arial, sans-serif; padding: 20px;">
                 <h2>Hi ${connection.to_user_id.full_name},</h2>
@@ -132,8 +135,8 @@ const deleteStory = inngest.createFunction(
     },
     async ({ event, step }) => {
         const { storyId } = event.data;
-        const lastday = new Date(Date.now() - 86400000) // 24*60*60*1000
-        await step.sleepUntil("wait-for-24-hours", lastday);
+        // const last24hours = new Date(Date.now() - 86400000) // 24*60*60*1000
+        await step.sleepUntil("wait-for-24-hours", "24h");
         await step.run('delete-story', async () => {
             await Story.findByIdAndDelete(storyId)
             return { message: "Story deleted" }
@@ -148,7 +151,7 @@ const sendNotificationUnseenMessages = inngest.createFunction(
         triggers: { cron: "TZ=Asia/Kolkata 0 9 * * *" },
     },
     async ({ step }) => {
-        const message = await Message.find({ seen: false }).populate('to_user_id');
+        const messages = await Message.find({ seen: false }).populate('to_user_id');
         const unseenCount = {}
 
         messages.map(message => {

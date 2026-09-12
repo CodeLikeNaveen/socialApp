@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { dummyMessagesData, dummyUserData } from '../assets/assets'
-import { ImageIcon, SendHorizonal } from 'lucide-react'
-import { useSelector } from 'react-redux'
-import { useParams } from 'react-router-dom'
+import { CheckCheck, ImageIcon, SendHorizonal } from 'lucide-react'
+import { useDispatch, useSelector } from 'react-redux'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '@clerk/react'
 import api from '../api/axios'
 import { addMessages, fetchMesssages, resetMessages } from '../features/messages/messagesSlice'
 import toast from 'react-hot-toast'
+import moment from 'moment'
+
 
 const ChatBox = () => {
 
@@ -14,6 +15,7 @@ const ChatBox = () => {
   const { userId } = useParams()
   const { getToken } = useAuth()
   const dispatch = useDispatch()
+  const navigate = useNavigate()
 
   const [text, setText] = useState('')
   const [image, setImage] = useState(null)
@@ -27,7 +29,8 @@ const ChatBox = () => {
       const token = await getToken()
       dispatch(fetchMesssages({ token, userId }))
     } catch (error) {
-      toast.error(error.message)
+      console.error("Fetch messages error:", error)
+      toast.error(error.message || "Failed to fetch messages")
     }
   }
 
@@ -46,7 +49,7 @@ const ChatBox = () => {
       if (data.success) {
         setText('')
         setImage(null)
-        dispatch(addMessages)
+        dispatch(addMessages(data.message))
       } else {
         throw new Error(data.message)
       }
@@ -73,24 +76,25 @@ const ChatBox = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
-
   return user && (
     <div className=' flex flex-col h-screen'>
-      <div className='flex items-center gap-2 p-2 md:px-10 xl:pl-42 bg-linear-to-r from-indigo-50 to-purple-50 border-b border-gray-300'>
-        <img src={user.profile_picture} alt="" className="size-8 rounded-full" />
-        <div>
-          <p className='font-medium'>{user.full_name}</p>
-          <p className='text-sm text-gray-500 -mt-1.5'>@{user.username}</p>
+      <Link to={`/profile/${userId}`}>
+        <div className='flex items-center gap-2 p-2 md:px-10 xl:pl-42 bg-linear-to-r from-indigo-50 to-purple-50 border-b border-gray-300 hover:cursor-pointer'>
+          <img src={user.profile_picture} alt="" className="size-8 rounded-full" />
+          <div>
+            <p className='font-medium'>{user.full_name}</p>
+            <p className='text-sm text-gray-500 -mt-1.5'>@{user.username}</p>
+          </div>
         </div>
-      </div>
+      </Link>
       <div className='p-5 md : px-10 h-full overflow-y-scroll'>
         <div className='space-y-4 max-w-4xl mx-auto'>
           {
             messages.toSorted((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
               .map((message, index) => (
-                <div key={index} className={`flex flex-col ${message.to_user_id !== user._id ? 'items-start' : 'items-end'} `}>
+                <div key={index} className={`flex flex-col ${message.from_user_id._id === user._id ? 'items-start' : 'items-end'} `}>
                   <div
-                    className={`p-2 text-sm max-w-sm bg-white text-slate-700 rounded-1g shadow ${message.to_user_id !== user._id ?
+                    className={`p-2 text-sm max-w-sm bg-white text-slate-700 rounded-2xl shadow ${message.to_user_id._id !== user._id ?
                       'rounded-bl-none' : 'rounded-br-none'}`}
                   >
                     {
@@ -101,7 +105,22 @@ const ChatBox = () => {
                         className='w-full max-w-sm rounded-1g mb-1' alt=""
                       />
                     }
-                    <p>{message.text}</p>
+
+                    {/* Time + Seen status */}
+                    <div className="flex flex-row gap-1">
+                      <div className='text-sm'>{message.text}</div>
+                      <div className="flex flex-2 justify-end gap-1 relative -bottom-2">
+                        <span className="text-[10px] text-gray-500">
+                          {moment(message.createdAt).fromNow(true)}
+                        </span>
+
+                        {message.from_user_id._id !== user._id && <CheckCheck
+                          size={16}
+                          strokeWidth={2}
+                          className={message.seen ? "text-blue-500" : "text-gray-500"}
+                        />}
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))

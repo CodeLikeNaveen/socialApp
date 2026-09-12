@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 
 const postSchema = new mongoose.Schema({
-    _id:{ type: String, required: true },
     user: { type: String, ref: 'User', required: true },
     content: { type: String },
     image_urls: [{ type: String }],

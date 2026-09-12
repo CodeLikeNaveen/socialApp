@@ -2,13 +2,12 @@ import React from 'react'
 import { assets } from '../assets/assets'
 import { Star } from 'lucide-react'
 import { SignIn } from '@clerk/react'
+import Background from '../components/Background'
 
 const Login = () => {
   return (
+    <Background>
     <div className='min-h-screen flex flex-col md:flex-row'>
-      {/* BackGround Image */}
-      <img src={assets.bgImage} alt="" className='absolute top-0 left-0 -z-1 w-full h-full object-cover' />
-
       {/* Left Side Branding */}
       <div className='flex-1 flex flex-col items-start justify-between p-6 md:p-10 1g:p1-40'>
         <img src={assets.logo} alt="" className='h-12 object-contain'/>
@@ -33,6 +32,8 @@ const Login = () => {
         <SignIn />
       </div>
     </div>
+    
+    </Background>
   )
 }
 

@@ -24,7 +24,6 @@ export const addUserStory = async (req, res) => {
             media_url,
             media_type,
             background_color
-
         })
 
         // schedule story deletion after 24 hours
@@ -44,15 +43,16 @@ export const addUserStory = async (req, res) => {
 // Get Stories
 export const getStories = async (req, res) => {
     try {
-        const { userId } = req.auth();
-        const user = await User.findById(userId)
+        // const { userId } = req.auth();
+        // const user = await User.findById(userId)
 
-        // User connections and followings
-        const userIds = [userId, ...user.connections, ...user.following]
+        // // User connections and followings
+        // const userIds = [userId, ...user.connections, ...user.following]
 
-        const stories = await Story.find({
-            user: { $in: userIds }
-        }).populate('user').sort({ createdAt: -1 });
+        // const stories = await Story.find({
+        //     user: { $in: userIds }
+        // }).populate('user').sort({ createdAt: -1 });
+        const stories = await Story.find().populate('user').sort({ createdAt: -1 }).limit(15);
 
         res.json({ success: true, stories })
 

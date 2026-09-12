@@ -27,7 +27,6 @@ const UserCard = ({ user }) => {
                 dispatch(fetchUser(await getToken()))
             } else {
                 toast.error(data.message)
-                console.log(data);
             }
         } catch (error) {
             toast.error(error.message)

@@ -27,15 +27,13 @@ const Connection = () => {
 
   const handleUnfollow = async (userId) => {
     if (loading) return;
+    setLoading(true);
     try {
-      setLoading(true);
       const { data } = await api.post('/api/user/unfollow', { id: userId }, {
         headers: { Authorization: `Bearer ${await getToken()}` }
       })
       if (data.success) {
         toast.success(data.message)
-        setUser(data.profile)
-        setPosts(data.posts)
       } else {
         toast.error(data.message)
         dispatch(fetchConnections(await getToken()))
@@ -70,7 +68,7 @@ const Connection = () => {
     getToken().then((token) => {
       dispatch(fetchConnections(token))
     })
-  }, [])
+  }, [connections, handleUnfollow, acceptConnection, followers, following, pendingConnections])
 
 
   return (

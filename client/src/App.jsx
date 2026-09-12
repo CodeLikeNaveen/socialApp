@@ -1,14 +1,17 @@
-import React, { useRef } from 'react';
+import React, { lazy, Suspense, useRef } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
+
 import Login from './pages/Login';
-import Feed from './pages/Feed';
-import Message from './pages/Message';
-import ChatBox from './pages/ChatBox';
 import Layout from './pages/Layout';
-import Connection from './pages/Connection';
-import CreatePost from './pages/CreatePost';
-import Discover from './pages/Discover';
-import Profile from './pages/Profile';
+import Feed from './pages/Feed';
+const Message = lazy(() => import('./pages/Message'));
+const ChatBox = lazy(() => import('./pages/ChatBox'));
+const Connection = lazy(() => import('./pages/Connection'));
+const CreatePost = lazy(() => import('./pages/CreatePost'));
+const Discover = lazy(() => import('./pages/Discover'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Notification = lazy(() => import('./components/Notification'));
+const Loading = lazy(() => import('./components/Loading'));
 
 import { useAuth, useUser } from '@clerk/react';
 import toast, { Toaster } from 'react-hot-toast';
@@ -17,7 +20,6 @@ import { useDispatch } from 'react-redux';
 import { fetchUser } from './features/user/userSlice';
 import { fetchConnections } from './features/connections/connectionSlice';
 import { addMessages } from './features/messages/messagesSlice';
-import Notification from './components/Notification';
 
 function App() {
   const { user } = useUser()
@@ -25,7 +27,6 @@ function App() {
 
   const { pathname } = useLocation()
   const pathnameRef = useRef(pathname)
-
 
   const dispatch = useDispatch()
 
@@ -51,7 +52,7 @@ function App() {
 
       eventSource.onmessage = (event) => {
         const message = JSON.parse(event.data)
-        if (pathnameRef.current = ('/messages/' + message.from_user_id._id)) {
+        if (pathnameRef.current === ('/messages/' + message.from_user_id._id)) {
           dispatch(addMessages(message))
         } else {
           toast.custom((t) => (
@@ -70,16 +71,17 @@ function App() {
   return (
     <>
       <Toaster />
+
       <Routes>
         <Route path='/' element={!user ? <Login /> : <Layout />}>
           <Route index element={<Feed />} />
-          <Route path='/messages' element={<Message />} />
-          <Route path='/messages/:userId' element={<ChatBox />} />
-          <Route path='/connections' element={<Connection />} />
-          <Route path='/discover' element={<Discover />} />
-          <Route path='/profile' element={<Profile />} />
-          <Route path='/profile/:profileId' element={<Profile />} />
-          <Route path='/create-post' element={<CreatePost />} />
+          <Route path='/messages' element={<Suspense fallback={<Loading />}><Message /> </Suspense>} />
+          <Route path='/messages/:userId' element={<Suspense fallback={<Loading />}><ChatBox /> </Suspense>} />
+          <Route path='/connections' element={<Suspense fallback={<Loading />}><Connection /> </Suspense>} />
+          <Route path='/discover' element={<Suspense fallback={<Loading />}><Discover /> </Suspense>} />
+          <Route path='/profile' element={<Suspense fallback={<Loading />}><Profile /> </Suspense>} />
+          <Route path='/profile/:profileId' element={<Suspense fallback={<Loading />}><Profile /> </Suspense>} />
+          <Route path='/create-post' element={<Suspense fallback={<Loading />}><CreatePost /> </Suspense>} />
         </Route>
       </Routes>
     </>

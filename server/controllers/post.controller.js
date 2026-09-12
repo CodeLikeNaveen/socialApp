@@ -36,12 +36,13 @@ export const addPost = async (req, res) => {
 // Get Feed Posts
 export const getFeedPosts = async (req, res) => {
     try {
-        const { userId } = req.auth()
-        const user = await User.findById(userId)
+        // const { userId } = req.auth()
+        // const user = await User.findById(userId)
 
-        // User connections and followings
-        const userIds = [userId, ...user.connections, ...user.following]
-        const posts = await Post.find({ user: { $in: userIds } }).populate('user').sort({ createdAt: -1 });
+        // // User connections and followings
+        // const userIds = [userId, ...user.connections, ...user.following]
+        // const posts = await Post.find({ user: { $in: userIds } }).populate('user').sort({ createdAt: -1 });
+        const posts = await Post.find().populate('user').sort({ likes_count: -1, createdAt: -1 }).limit(30);
 
         res.json({ success: true, posts })
 

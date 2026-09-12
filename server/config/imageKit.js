@@ -83,6 +83,6 @@ export const createMessageFileUrl = async (file, width=1280) => {
                 width: width,
             },
         ],
-    });
+    });    
     return fileUrl;
 }

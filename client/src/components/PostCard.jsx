@@ -41,13 +41,12 @@ const PostCard = ({ post }) => {
 
     }
 
-
     return (
         <div className='bg-white rounded-xl shadow p-4 space-y-4 w-full max-w-2xl'>
             {/* User Info */}
             <div onClick={() => navigate(`/profile/${post.user._id}`)} className='inline-flex items-center gap-3 cursor-pointer'>
                 <div className='overflow-hidden w-10 h-10 rounded-full shadow'>
-                    <img src={post.user.profile_picture} alt="" />
+                    <img src={post.user.profile_picture} alt=""  className='w-full h-full object-cover'/>
                 </div>
                 <div className='flex items-center space-x-1'>
                     <span> {post.user.full_name} </span>
@@ -83,10 +82,10 @@ const PostCard = ({ post }) => {
                     <MessageCircle className="w-4 h-4" />
                     <span>{"0"}</span>
                 </div>
-                <div className='flex items-center gap-1'>
+                {/* <div className='flex items-center gap-1'>
                     <Share2 className="w-4 h-4" />
                     <span>{0}</span>
-                </div>
+                </div> */}
 
             </div>
 

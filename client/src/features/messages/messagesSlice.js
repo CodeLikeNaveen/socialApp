@@ -1,15 +1,13 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../api/axios";
-import { useAuth } from "@clerk/react";
 
 const initialState = {
     messages: []
 }
 
-export const fetchMesssages = createAsyncThunk('messageas/fetchMessages', async ({ token, userId }) => {
-    const { getToken } = useAuth()
+export const fetchMesssages = createAsyncThunk('messages/fetchMessages', async ({ token, userId }) => {
     const { data } = await api.post('/api/message/get', { to_user_id: userId }, {
-        headers: { Authorization: `Bearer ${await getToken()}` }
+        headers: { Authorization: `Bearer ${token}` }
     })
     return data.success ? data : null;
 })
@@ -29,9 +27,9 @@ const messagesSlice = createSlice({
         },
     },
     extraReducers: (builder) => {
-        builder.addCase(fetchMesssages.fulfilled, (state, action) => {
+        builder.addCase(fetchMesssages.fulfilled, (state, action) => {            
             if (action.payload) {
-                state.messages = action.payload
+                state.messages = action.payload.messages
             }
         })
     }

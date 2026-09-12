@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Loading from '../components/Loading'
-import { dummyPostsData, dummyUserData } from '../assets/assets'
 import UserProfileInfo from '../components/UserProfileInfo'
 import PostCard from '../components/PostCard'
 import moment from 'moment'
@@ -22,7 +21,7 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState('posts')
   const [showEdit, setShowEdit] = useState(false)
 
-  const fetchUser = async (profileId) => {
+  const fetchUser = async (profileId = currentUser._id) => {
     const token = await getToken()
     try {      
       const { data } = await api.post('/api/user/profiles', {profileId},{ 
