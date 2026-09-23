@@ -19,9 +19,7 @@ const StoriesBar = () => {
         try {
             const { data } = await api.get('/api/story/get', {
                 headers: { Authorization: `Bearer ${await getToken()}` }
-            })
-            console.log(data);
-            
+            })            
             if (data.success) {
                 setStories(data.stories)
             } else {
