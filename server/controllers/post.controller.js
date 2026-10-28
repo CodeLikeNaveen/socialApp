@@ -2,6 +2,7 @@ import { createPostImageUrl } from "../config/imageKit.js";
 import Comment from "../models/Comments.model.js";
 import Post from "../models/Post.model.js";
 import User from "../models/User.model.js";
+import redis from "../config/redis.js";
 
 
 // Add Post
@@ -26,6 +27,14 @@ export const addPost = async (req, res) => {
             image_urls,
             post_type
         })
+
+        // remove old feed posts
+        try {
+            await redis.del('feedPosts')
+        } catch (error) {
+            console.log("Error in delete feed cache: ",error);
+        }
+
         res.json({ success: true, message: "Post Created!!" })
     } catch (error) {
         console.log(error.message);
@@ -36,15 +45,33 @@ export const addPost = async (req, res) => {
 // Get Feed Posts
 export const getFeedPosts = async (req, res) => {
     try {
+
+        try {
+            const cacheValue = await redis.get('feedPosts');
+            if (cacheValue) {
+                return res.json({ success: true, posts:cacheValue});
+            }
+        } catch (error) {
+            console.log("Error in cache feed: ",error)
+        }
+
         // const { userId } = req.auth()
         // const user = await User.findById(userId)
 
         // // User connections and followings
         // const userIds = [userId, ...user.connections, ...user.following]
         // const posts = await Post.find({ user: { $in: userIds } }).populate('user').sort({ createdAt: -1 });
+
+
         const posts = await Post.find().populate('user').sort({ likes_count: -1, createdAt: -1 }).limit(30);
 
-        res.json({ success: true, posts })
+        try {
+            await redis.set('feedPosts',JSON.stringify(posts));
+        } catch (error) {
+            console.log("Error in save cache feed: ",error)
+        }
+
+        return res.json({ success: true, posts })
 
     } catch (error) {
         console.log(error.message);
@@ -68,6 +95,12 @@ export const likePost = async (req, res) => {
 
         post.likes_count.push(userId)
         await post.save()
+        // remove old feed posts
+        try {
+            await redis.del('feedPosts')
+        } catch (error) {
+            console.log("Error in delete feed cache: ",error);
+        }
         res.json({ success: true, message: 'Post liked' });
 
     } catch (error) {

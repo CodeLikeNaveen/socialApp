@@ -2,7 +2,7 @@ import { createStoryMediaUrl } from "../config/imageKit.js";
 import { inngest } from "../inngest/index.js";
 import Story from "../models/Story.model.js";
 import User from "../models/User.model.js";
-
+import redis from "../config/redis.js";
 
 // Add User Story
 export const addUserStory = async (req, res) => {
@@ -29,8 +29,15 @@ export const addUserStory = async (req, res) => {
         // schedule story deletion after 24 hours
         await inngest.send({
             name: 'app/story.delete',
-            data: {storyId: story._id}
+            data: { storyId: story._id }
         })
+
+        // remove old stroy cache
+        try {
+            await redis.del('feedStory')
+        } catch (error) {
+            console.log("Error in delete feedStory cache: ",error);
+        }
 
         res.json({ success: true, message: 'Story Added!!' })
 
@@ -52,7 +59,25 @@ export const getStories = async (req, res) => {
         // const stories = await Story.find({
         //     user: { $in: userIds }
         // }).populate('user').sort({ createdAt: -1 });
+
+        // redis cache story
+        try {
+            const cacheValue = await redis.get('feedStory');
+            if (cacheValue) {
+                return res.json({ success: true, stories:cacheValue});
+            }
+        } catch (error) {
+            console.log("Error in cache feedStory: ", error)
+        }
+
         const stories = await Story.find().populate('user').sort({ createdAt: -1 }).limit(15);
+
+        // set redis cache story
+        try {
+            await redis.set('feedStory',JSON.stringify(stories));
+        } catch (error) {
+            console.log("Error in save cache feedStory: ",error)
+        }
 
         res.json({ success: true, stories })
 
