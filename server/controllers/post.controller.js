@@ -49,6 +49,7 @@ export const getFeedPosts = async (req, res) => {
         try {
             const cacheValue = await redis.get('feedPosts');
             if (cacheValue) {
+                console.log("Feed Post Cache used")
                 return res.json({ success: true, posts:cacheValue});
             }
         } catch (error) {
