@@ -34,8 +34,9 @@
     - npm install @clerk/express
     - npm install @imagekit/nodejs
     - npm install nodemailer
+    - npm install @upstash/redis
     
-    - ```npm i jsonwebtoken bcrypt cookie-parser ``` not used and just for extra knowledge
+<!-- ```npm i jsonwebtoken bcrypt cookie-parser ``` not used and just for extra knowledge -->
 
 ## ==>Other Services:
 **1. Inngest** : [Docs](https://www.inngest.com/docs/getting-started/express-quick-start)
@@ -47,3 +48,5 @@
 **4. NodeMailer** : [Link](https://nodemailer.com/)
 
 **5. Brevo** : [Link](http://app.brevo.com/settings/keys/smtp)
+
+**5. upstash** : [Link](https://upstash.com/)
