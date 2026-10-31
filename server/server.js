@@ -1,7 +1,8 @@
 import express from "express";
 import cors from "cors";
 import 'dotenv/config';
-import connectDB from "./config/db.js";
+import {gracefulShutdown, uncaughtException, unhandledRejection  } from "./config/shutdown.js";
+import { connectDB } from "./config/db.js";
 
 import { serve } from "inngest/express";
 import { inngest, functions } from "./inngest/index.js"
@@ -13,7 +14,7 @@ import messageRouter from "./routes/message.route.js";
 
 const app = express();
 
-await connectDB();
+await connectDB(); 
 
 app.use(cors());
 app.use(express.json({limit: "16kb"}));
@@ -23,7 +24,7 @@ app.use(clerkMiddleware())
 app.use("/api/inngest", serve({ client: inngest, functions }));
 
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, ()=>console.log(`Server is running on port ${PORT}`))
+const server = app.listen(PORT, ()=>console.log(`Server is running on port ${PORT}`))
 
 // routes
 app.use('/api/user', userRouter)
@@ -33,3 +34,9 @@ app.use('/api/message', messageRouter)
 
 app.get('/',(req,res)=>res.send('Server is Running'))
 
+
+// Listen for termination signals
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM", server));
+process.on("SIGINT", () => gracefulShutdown("SIGINT", server));
+process.on('uncaughtException', (err)=>uncaughtException(err, server))
+process.on('unhandledRejection', (reson)=>unhandledRejection(reson, server))
