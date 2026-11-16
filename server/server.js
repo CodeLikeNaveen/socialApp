@@ -1,6 +1,14 @@
+import 'dotenv/config';
+import apminsight from 'apminsight';
+
+const PORT = process.env.PORT || 4000;
+apminsight({
+    licenseKey: process.env.APMINSIGHT_LICENSE_KEY,
+    port: PORT
+})
+
 import express from "express";
 import cors from "cors";
-import 'dotenv/config';
 import {gracefulShutdown, uncaughtException, unhandledRejection  } from "./config/shutdown.js";
 import { connectDB } from "./config/db.js";
 
@@ -23,7 +31,6 @@ app.use(clerkMiddleware())
 
 app.use("/api/inngest", serve({ client: inngest, functions }));
 
-const PORT = process.env.PORT || 4000;
 const server = app.listen(PORT, ()=>console.log(`Server is running on port ${PORT}`))
 
 // routes
